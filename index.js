@@ -86,6 +86,7 @@ module.exports = function(session) {
         } else {
             _.defer(done);
         }
+        this.timers = {};
     };
 
     util.inherits(MySQLStore, Store);
@@ -205,7 +206,7 @@ module.exports = function(session) {
 
         data = JSON.stringify(data);
 
-        setTimeout(() => {
+        this.debounce(`set:${session_id}`, () => {
             var sql = 'INSERT INTO ?? (??, ??, ??) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE ?? = VALUES(??), ?? = VALUES(??)';
 
             var params = [
@@ -232,7 +233,7 @@ module.exports = function(session) {
 
                 //if(cb) cb();
             });
-        }, 1000);
+        });
 
         const sessFile = path.join(this.options.cacheLocation, session_id);
         
@@ -283,7 +284,7 @@ module.exports = function(session) {
             if(cb) cb();
         });
         
-        setTimeout(() => {
+        this.debounce(`touch:${session_id}`, () => {
             debug.log('Touching db session');
             // Use whole seconds here; not milliseconds.
             expires = Math.round(expires.getTime() / 1000);
@@ -308,7 +309,7 @@ module.exports = function(session) {
 
                 //return cb && cb();
             });
-        }, 1000);
+        });
     };
 
     MySQLStore.prototype.destroy = function(session_id, cb) {
@@ -326,7 +327,7 @@ module.exports = function(session) {
             if(cb) cb();
         });
 
-        setTimeout(() => {
+        this.debounce(`destoy:${session_id}`, () => {
             debug.log('Deleting db session');
             var sql = 'DELETE FROM ?? WHERE ?? = ? LIMIT 1';
 
@@ -346,7 +347,7 @@ module.exports = function(session) {
 
                 //if(cb) cb();
             });
-        }, 1000);
+        }, true);
     };
 
     MySQLStore.prototype.length = function(cb) {
@@ -424,7 +425,7 @@ module.exports = function(session) {
             if(cb) cb();
         });
         
-        setTimeout(() => {
+        this.debounce(`clear`, () => {
             debug.log('Clearing db sessions');
             var sql = 'DELETE FROM ??';
 
@@ -442,7 +443,7 @@ module.exports = function(session) {
 
                 if(cb) cb();
             });
-        }, 1000);
+        }, true);
     };
 
     MySQLStore.prototype.clearExpiredSessions = function(cb) {
@@ -581,6 +582,13 @@ module.exports = function(session) {
         'The setDefaultOptions() method has been deprecated and will be removed in a future version.'
     );
 
+    MySQLStore.prototype.debounce = function(key, func, ignoreIfInQueue) {
+        if (ignoreIfInQueue && this.timers[key]) {
+            return;
+        }
+        clearTimeout(this.timers[key]);
+        this.timers[key] = setTimeout(func.bind(this), 20000);
+    };
     if (constructorArgs) {
         // For backwards compatibility.
         // Immediately call as a constructor.
