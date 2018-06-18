@@ -530,6 +530,19 @@ module.exports = function(session) {
         }
     };
 
+    MySQLStore.prototype.debounce = function(key, func, ignoreIfInQueue) {
+        if (ignoreIfInQueue && this.timers[key]) {
+            debug.log('Skipping debounce', key);
+            return;
+        }
+        debug.log('Debouncing', key);
+        clearTimeout(this.timers[key]);
+        this.timers[key] = setTimeout(() => {
+            debug.log('Debounce call', key);
+            func.bind(this)();
+        }, 20000);
+    };
+
     MySQLStore.prototype.closeStore = deprecate.function(
         MySQLStore.prototype.close,
         'The closeStore() method has been deprecated. Use close() instead.'
@@ -582,13 +595,6 @@ module.exports = function(session) {
         'The setDefaultOptions() method has been deprecated and will be removed in a future version.'
     );
 
-    MySQLStore.prototype.debounce = function(key, func, ignoreIfInQueue) {
-        if (ignoreIfInQueue && this.timers[key]) {
-            return;
-        }
-        clearTimeout(this.timers[key]);
-        this.timers[key] = setTimeout(func.bind(this), 20000);
-    };
     if (constructorArgs) {
         // For backwards compatibility.
         // Immediately call as a constructor.
