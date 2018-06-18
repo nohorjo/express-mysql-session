@@ -162,7 +162,7 @@ module.exports = function(session) {
                         debug.error(error);
                         return cb(new Error('Failed to parse data for session:', session_id));
                     }
-                    fs.truncateSync(sessFile);
+                    try { fs.truncateSync(sessFile); } catch (e) {}
                     fs.writeFile(sessFile, JSON.stringify(session));
 
                     cb(null, session);
@@ -238,7 +238,7 @@ module.exports = function(session) {
 
         const sessFile = path.join(this.options.cacheLocation, session_id);
         
-        fs.truncateSync(sessFile);
+        try { fs.truncateSync(sessFile); } catch (e) {}
         fs.writeFile(sessFile, data, error => {
             if (error) {
                 debug.error('Failed to insert session data.');
@@ -276,7 +276,7 @@ module.exports = function(session) {
         data.cookie.expires = expires;
 
         const sessFile = path.join(this.options.cacheLocation, session_id);
-        fs.truncateSync(sessFile);
+        try { fs.truncateSync(sessFile); } catch (e) {}
         fs.writeFile(sessFile, JSON.stringify(data), error => {
             if (error) {
                 debug.error('Failed to touch session data.');
@@ -538,7 +538,7 @@ module.exports = function(session) {
             let timers;
             if (err) {
                 timers = {}; 
-                fs.truncateSync(this.timers);
+                try { fs.truncateSync(this.timers); } catch(e) {}
                 fs.writeFile(this.timers, '{}');
             } else {
                 timers = JSON.parse(fs.readFileSync(this.timers, 'utf8'));
@@ -555,11 +555,11 @@ module.exports = function(session) {
                     debug.log('Debounce call', key);
                     func.bind(this)();
                     delete timers[key];
-                    fs.truncateSync(this.timers);
+                    try { fs.truncateSync(this.timers); } catch(e) {}
                     fs.writeFileSync(this.timers, JSON.stringify(timers));
                 }
             }, 20000);
-            fs.truncateSync(this.timers);
+            try { fs.truncateSync(this.timers); } catch(e) {}
             fs.writeFileSync(this.timers, JSON.stringify(timers));
         });
     };
