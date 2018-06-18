@@ -86,8 +86,9 @@ module.exports = function(session) {
         } else {
             _.defer(done);
         }
-        this.timers = {};
-    };
+        this.timers = path.join(this.options.cacheLocation, 'timers');
+        fs.writeFile(this.timers, '{}');
+};
 
     util.inherits(MySQLStore, Store);
 
@@ -95,7 +96,6 @@ module.exports = function(session) {
 
         debug.log('Creating sessions database table');
 
-        var fs = require('fs');
         var schemaFilePath = path.join(__dirname, 'schema.sql');
 
         fs.readFile(schemaFilePath, 'utf-8', function(error, sql) {
@@ -531,16 +531,23 @@ module.exports = function(session) {
     };
 
     MySQLStore.prototype.debounce = function(key, func, ignoreIfInQueue) {
-        if (ignoreIfInQueue && this.timers[key]) {
+        let timers = JSON.parse(fs.readFileSync(this.timers, 'utf8'));
+        if (ignoreIfInQueue && timers[key]) {
             debug.log('Skipping debounce', key);
             return;
         }
         debug.log('Debouncing', key);
-        clearTimeout(this.timers[key]);
-        this.timers[key] = setTimeout(() => {
-            debug.log('Debounce call', key);
-            func.bind(this)();
+        const ourKey = timers[key] = _.random(0, 1e10) + new Date();
+        setTimeout(() => {
+            timers = JSON.parse(fs.readFileSync(this.timers, 'utf8'));
+            if (timers[key] == ourKey) {
+                debug.log('Debounce call', key);
+                func.bind(this)();
+                delete timers[key];
+                fs.writeFileSync(this.timers, JSON.stringify(timers));
+            }
         }, 20000);
+        fs.writeFileSync(this.timers, JSON.stringify(timers));
     };
 
     MySQLStore.prototype.closeStore = deprecate.function(
