@@ -146,20 +146,21 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
 set shortmess=aoO
-badd +0 index.js
+badd +1 index.js
+badd +0 package.json
 argglobal
 silent! argdel *
 $argadd index.js
-edit index.js
+edit package.json
 set splitbelow splitright
 set nosplitbelow
 set nosplitright
 wincmd t
 set winminheight=1 winheight=1 winminwidth=1 winwidth=1
 argglobal
-vnoremap <buffer> \ff :call RangeJsBeautify()
-nnoremap <buffer> \ff :call JsBeautify()
-onoremap <buffer> \ff :call JsBeautify()
+vnoremap <buffer> \ff :call RangeJsonBeautify()
+nnoremap <buffer> \ff :call JsonBeautify()
+onoremap <buffer> \ff :call JsonBeautify()
 setlocal autoindent
 setlocal backupcopy=
 setlocal nobinary
@@ -173,8 +174,8 @@ setlocal cinkeys=0{,0},0),:,0#,!^F,o,O,e
 setlocal cinoptions=
 setlocal cinwords=if,else,while,do,for,switch
 setlocal colorcolumn=
-setlocal comments=sO:*\ -,mO:*\ \ ,exO:*/,s1:/*,mb:*,ex:*/,://
-setlocal commentstring=//%s
+setlocal comments=
+setlocal commentstring=
 setlocal complete=.,w,b,u,t,i
 setlocal completefunc=
 setlocal nocopyindent
@@ -189,8 +190,8 @@ setlocal nodiff
 setlocal equalprg=
 setlocal errorformat=
 setlocal expandtab
-if &filetype != 'javascript'
-setlocal filetype=javascript
+if &filetype != 'json'
+setlocal filetype=json
 endif
 setlocal fixendofline
 set foldcolumn=3
@@ -205,7 +206,7 @@ setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldtext=foldtext()
 setlocal formatexpr=
-setlocal formatoptions=croql
+setlocal formatoptions=cq
 setlocal formatlistpat=^\\s*\\d\\+[\\]:.)}\\t\ ]\\s*
 setlocal formatprg=
 setlocal grepprg=
@@ -231,7 +232,7 @@ setlocal nrformats=bin,octal,hex
 set number
 setlocal number
 setlocal numberwidth=4
-setlocal omnifunc=javascriptcomplete#CompleteJS
+setlocal omnifunc=
 setlocal path=
 setlocal nopreserveindent
 setlocal nopreviewwindow
@@ -253,8 +254,8 @@ setlocal statusline=
 setlocal suffixesadd=
 setlocal swapfile
 setlocal synmaxcol=3000
-if &syntax != 'javascript'
-setlocal syntax=javascript
+if &syntax != 'json'
+setlocal syntax=json
 endif
 setlocal tabstop=8
 setlocal tagcase=
@@ -268,12 +269,12 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 586 - ((57 * winheight(0) + 58) / 116)
+let s:l = 4 - ((3 * winheight(0) + 58) / 116)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-586
-normal! 037|
+4
+normal! 019|
 tabnext 1
 if exists('s:wipebuf')
   silent exe 'bwipe ' . s:wipebuf
