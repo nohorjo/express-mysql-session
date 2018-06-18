@@ -531,7 +531,7 @@ module.exports = function(session) {
     };
 
     MySQLStore.prototype.debounce = function(key, func, ignoreIfInQueue) {
-        fs.access(sessFile, fs.constants.F_OK, err => {
+        fs.access(this.timers, fs.constants.F_OK, err => {
             let timers;
             if (err) {
                 timers = {}; 
