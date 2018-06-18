@@ -531,23 +531,31 @@ module.exports = function(session) {
     };
 
     MySQLStore.prototype.debounce = function(key, func, ignoreIfInQueue) {
-        let timers = JSON.parse(fs.readFileSync(this.timers, 'utf8'));
-        if (ignoreIfInQueue && timers[key]) {
-            debug.log('Skipping debounce', key);
-            return;
-        }
-        debug.log('Debouncing', key);
-        const ourKey = timers[key] = _.random(0, 1e10) + new Date();
-        setTimeout(() => {
-            timers = JSON.parse(fs.readFileSync(this.timers, 'utf8'));
-            if (timers[key] == ourKey) {
-                debug.log('Debounce call', key);
-                func.bind(this)();
-                delete timers[key];
-                fs.writeFileSync(this.timers, JSON.stringify(timers));
+        fs.access(sessFile, fs.constants.F_OK, err => {
+            let timers;
+            if (err) {
+                timers = {}; 
+                fs.writeFile(this.timers, '{}');
+            } else {
+                timers = JSON.parse(fs.readFileSync(this.timers, 'utf8'));
             }
-        }, 20000);
-        fs.writeFileSync(this.timers, JSON.stringify(timers));
+            if (ignoreIfInQueue && timers[key]) {
+                debug.log('Skipping debounce', key);
+                return;
+            }
+            debug.log('Debouncing', key);
+            const ourKey = timers[key] = _.random(0, 1e10) + new Date();
+            setTimeout(() => {
+                timers = JSON.parse(fs.readFileSync(this.timers, 'utf8'));
+                if (timers[key] == ourKey) {
+                    debug.log('Debounce call', key);
+                    func.bind(this)();
+                    delete timers[key];
+                    fs.writeFileSync(this.timers, JSON.stringify(timers));
+                }
+            }, 20000);
+            fs.writeFileSync(this.timers, JSON.stringify(timers));
+        });
     };
 
     MySQLStore.prototype.closeStore = deprecate.function(
