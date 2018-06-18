@@ -1,7 +1,7 @@
 {
   "name": "express-mysql-session",
   "description": "A MySQL session store for express.js",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "main": "index.js",
   "scripts": {
     "test": "grunt test"

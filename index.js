@@ -87,7 +87,6 @@ module.exports = function(session) {
             _.defer(done);
         }
         this.timers = path.join(this.options.cacheLocation, 'timers');
-        fs.truncateSync(this.timers);
         fs.writeFile(this.timers, '{}');
 };
 
