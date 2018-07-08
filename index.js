@@ -550,15 +550,20 @@ module.exports = function(session) {
             }
             debug.log('Debouncing', key);
             const ourKey = timers[key] = _.random(0, 1e10) + new Date();
-            setTimeout(() => {
-                timers = JSON.parse(fs.readFileSync(this.timers, 'utf8'));
-                if (timers[key] == ourKey) {
-                    debug.log('Debounce call', key);
-                    func.bind(this)();
-                    delete timers[key];
-                    fs.writeFileSync(this.timers, JSON.stringify(timers));
+            const doDebounce = () => setTimeout(() => {
+                try {
+                    timers = JSON.parse(fs.readFileSync(this.timers, 'utf8'));
+                    if (timers[key] == ourKey) {
+                        debug.log('Debounce call', key);
+                        func.bind(this)();
+                        delete timers[key];
+                        fs.writeFileSync(this.timers, JSON.stringify(timers));
+                    }
+                } catch (e) {
+                    doDebounce();
                 }
             }, 20000);
+            doDebounce();
             fs.writeFileSync(this.timers, JSON.stringify(timers));
         });
     };
