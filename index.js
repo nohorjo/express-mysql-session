@@ -534,11 +534,15 @@ module.exports = function(session) {
     MySQLStore.prototype.debounce = function(key, func, ignoreIfInQueue) {
         fs.access(this.timers, fs.constants.F_OK, err => {
             let timers;
-            if (err) {
-                timers = {}; 
-                fs.writeFileSync(this.timers, '{}');
-            } else {
-                timers = JSON.parse(fs.readFileSync(this.timers, 'utf8'));
+            try {
+                if (err) {
+                    fs.writeFileSync(this.timers, '{}');
+                    throw err;
+                } else {
+                    timers = JSON.parse(fs.readFileSync(this.timers, 'utf8'));
+                }
+            } catch (e) {
+                timers = {};
             }
             if (ignoreIfInQueue && timers[key]) {
                 debug.log('Skipping debounce', key);
