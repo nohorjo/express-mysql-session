@@ -87,7 +87,7 @@ module.exports = function(session) {
             _.defer(done);
         }
         this.timers = path.join(this.options.cacheLocation, 'timers');
-        fs.writeFile(this.timers, '{}');
+        fs.writeFileSync(this.timers, '{}');
 };
 
     util.inherits(MySQLStore, Store);
@@ -162,7 +162,7 @@ module.exports = function(session) {
                         debug.error(error);
                         return cb(new Error('Failed to parse data for session:', session_id));
                     }
-                    fs.writeFile(sessFile, JSON.stringify(session));
+                    fs.writeFileSync(sessFile, JSON.stringify(session));
 
                     cb(null, session);
                 });
