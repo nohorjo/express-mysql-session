@@ -173,8 +173,15 @@ module.exports = function(session) {
                         debug.error(error);
                         return cb(new Error('Failed to parse data for session:', session_id));
                     }
-                    if (data) cb(null, JSON.parse(data));
-                    else this.get(session_id, cb); // retry 
+                        try {
+                            cb(null, JSON.parse(data));
+                        } catch (e) {
+                            debug.error(e);
+                            fs.unlink(sessFile, err => {
+                                if (err) debug.error(err);
+                                this.get(session_id, cb); // retry 
+                            });
+                        }
                 });
             }
         });
